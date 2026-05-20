@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Obsidian + Codex：打造可持续知识库与项目智能体工作流</title>
+  <meta name="description" content="一套把 Obsidian、Codex、AGENTS.md、Skills、RAG/MCP 结合起来的项目知识库建设方法，包含目录结构、模板、Skill、AGENTS.md 和 GitHub Pages 发布流程。" />
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --paper: #ffffff;
+      --ink: #18202b;
+      --muted: #667085;
+      --line: #e6e9f0;
+      --brand: #395cff;
+      --brand-2: #12a88a;
+      --code-bg: #0f172a;
+      --code-ink: #e5e7eb;
+      --soft: #eef3ff;
+      --warn: #fff8e6;
+      --ok: #ecfdf3;
+      --shadow: 0 18px 50px rgba(15, 23, 42, .08);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: radial-gradient(circle at 18% 8%, #e9eeff 0, transparent 34%),
+                  radial-gradient(circle at 82% 4%, #e6fff9 0, transparent 28%),
+                  var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif;
+      line-height: 1.72;
+    }
+    a { color: var(--brand); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 38px 22px 80px; }
+    .hero {
+      background: linear-gradient(135deg, rgba(57,92,255,.95), rgba(18,168,138,.92));
+      color: white;
+      border-radius: 30px;
+      padding: 54px 52px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -110px;
+      top: -120px;
+      width: 330px;
+      height: 330px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.16);
+    }
+    .hero h1 { margin: 0 0 18px; font-size: clamp(32px, 5vw, 56px); line-height: 1.14; letter-spacing: -.04em; }
+    .hero p { margin: 0; max-width: 850px; font-size: 18px; color: rgba(255,255,255,.9); }
+    .meta { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.16);
+      color: rgba(255,255,255,.95);
+      font-size: 14px;
+      backdrop-filter: blur(8px);
+    }
+    .layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 26px; margin-top: 28px; align-items: start; }
+    .toc {
+      position: sticky;
+      top: 18px;
+      background: rgba(255,255,255,.88);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(15,23,42,.06);
+      backdrop-filter: blur(10px);
+    }
+    .toc h2 { font-size: 16px; margin: 0 0 12px; }
+    .toc ol { margin: 0; padding-left: 20px; font-size: 14px; color: var(--muted); }
+    .toc li { margin: 8px 0; }
+    article {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 38px;
+      overflow: hidden;
+    }
+    section { padding: 18px 0 26px; border-bottom: 1px solid var(--line); }
+    section:last-child { border-bottom: 0; }
+    h2 { font-size: clamp(24px, 3vw, 34px); line-height: 1.26; margin: 0 0 16px; letter-spacing: -.02em; }
+    h3 { font-size: 21px; margin: 26px 0 10px; }
+    p { margin: 12px 0; }
+    ul, ol { padding-left: 1.35em; }
+    li { margin: 6px 0; }
+    .lead { font-size: 18px; color: #344054; }
+    .callout {
+      border: 1px solid var(--line);
+      background: var(--soft);
+      border-left: 5px solid var(--brand);
+      border-radius: 16px;
+      padding: 16px 18px;
+      margin: 18px 0;
+    }
+    .callout.ok { background: var(--ok); border-left-color: var(--brand-2); }
+    .callout.warn { background: var(--warn); border-left-color: #f59e0b; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 18px 0; }
+    .card { border: 1px solid var(--line); border-radius: 18px; padding: 18px; background: #fbfcff; }
+    .card h3 { margin-top: 0; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 15px; }
+    th, td { border: 1px solid var(--line); padding: 12px 13px; vertical-align: top; }
+    th { background: #f2f4f8; text-align: left; }
+    pre {
+      position: relative;
+      margin: 18px 0;
+      padding: 46px 18px 18px;
+      overflow: auto;
+      border-radius: 18px;
+      background: var(--code-bg);
+      color: var(--code-ink);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 13.5px; }
+    :not(pre) > code { background: #eef2ff; padding: 2px 5px; border-radius: 6px; color: #273469; }
+    .copy-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      border: 1px solid rgba(255,255,255,.25);
+      background: rgba(255,255,255,.08);
+      color: #fff;
+      border-radius: 999px;
+      padding: 5px 11px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .step { counter-increment: step; display: grid; grid-template-columns: 44px 1fr; gap: 14px; margin: 18px 0; }
+    .step::before { content: counter(step); width: 38px; height: 38px; border-radius: 50%; background: var(--brand); color: white; display: grid; place-items: center; font-weight: 700; }
+    .steps { counter-reset: step; }
+    .footnotes { font-size: 14px; color: var(--muted); }
+    .footer-note { margin-top: 28px; color: var(--muted); font-size: 14px; text-align: center; }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .toc { position: static; }
+      article { padding: 24px; }
+      .hero { padding: 38px 26px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+    @media print {
+      body { background: white; }
+      .wrap { padding: 0; max-width: none; }
+      .hero, article, .toc { box-shadow: none; }
+      .toc { position: static; }
+      .copy-btn { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1>Obsidian + Codex：打造可持续知识库与项目智能体工作流</h1>
+      <p>这篇文章整理一套面向长期项目的实践方案：用 Obsidian 沉淀资料，用 AGENTS.md 管理 Codex 的项目规则，用 Skills 固化重复流程，用搜索脚本、RAG 或 MCP 让 Codex 能够真正调用你的知识库。</p>
+      <div class="meta">
+        <span class="pill">Codex 使用方法 · 第二篇</span>
+        <span class="pill">Obsidian 知识库</span>
+        <span class="pill">AGENTS.md / Skills / MCP</span>
+        <span class="pill">适合长期项目管理</span>
+      </div>
+    </header>
+
+    <div class="layout">
+      <nav class="toc" aria-label="目录">
+        <h2>目录</h2>
+        <ol>
+          <li><a href="#sec-1">总体判断</a></li>
+          <li><a href="#sec-2">推荐架构</a></li>
+          <li><a href="#sec-3">建立 Obsidian Vault</a></li>
+          <li><a href="#sec-4">统一笔记模板</a></li>
+          <li><a href="#sec-5">连接 Codex 项目</a></li>
+          <li><a href="#sec-6">AGENTS.md 写法</a></li>
+          <li><a href="#sec-7">Obsidian 检索 Skill</a></li>
+          <li><a href="#sec-8">先用 rg，再升级 RAG/MCP</a></li>
+          <li><a href="#sec-9">日常工作流</a></li>
+          <li><a href="#sec-10">发布到博客</a></li>
+          <li><a href="#sec-11">落地路线</a></li>
+          <li><a href="#sec-12">发给 Codex 的执行提示词</a></li>
+        </ol>
+      </nav>
+
+      <article>
+        <section id="sec-1">
+          <h2>一、总体判断：Obsidian 适合做 Codex 的长期知识库，但不要把它当 NotebookLM</h2>
+          <p class="lead">Obsidian 和 Codex 的组合非常适合长期项目，但它的定位不是“把资料上传进去问答”，而是“把项目知识长期沉淀为可维护的 Markdown，再让 Codex 按规则、流程和工具去检索与使用”。</p>
+          <div class="callout ok">
+            <strong>最佳理解：</strong>Obsidian 负责沉淀知识；AGENTS.md 负责告诉 Codex 怎么工作；Skills 负责把重复流程标准化；搜索脚本、RAG 或 MCP 负责让 Codex 找到相关资料。
+          </div>
+          <p>Obsidian 的笔记本质上是本地 Markdown 文件，Vault 是本地文件夹，因此它天然适合被 VS Code、Git、Codex、脚本和 RAG 工具读取。Obsidian 的内部链接和图谱视图对人类整理知识很有帮助，但它本身不是语义检索系统。</p>
+          <table>
+            <thead><tr><th>工具</th><th>最适合承担的角色</th><th>不适合承担的角色</th></tr></thead>
+            <tbody>
+              <tr><td>Obsidian</td><td>长期知识库、项目笔记、决策记录、错误记录、博客草稿</td><td>自动化执行器、完整代码代理</td></tr>
+              <tr><td>AGENTS.md</td><td>项目规则、目录说明、命令、约束、完成标准</td><td>大段资料库、论文原文、网页合集</td></tr>
+              <tr><td>Skills</td><td>重复任务流程，如调参分析、报错排查、文档整理</td><td>无限制的百科知识库</td></tr>
+              <tr><td>MCP / RAG</td><td>连接外部工具、语义检索大量资料、调用文档源</td><td>替代知识整理本身</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="sec-2">
+          <h2>二、推荐架构：Obsidian 是长期记忆，Codex 项目是执行现场</h2>
+          <p>推荐把知识库和代码项目分开管理，再用复制、目录联接、脚本检索或 MCP/RAG 连接起来。这样既不会污染代码仓库，也能让知识跨项目复用。</p>
+          <pre><button class="copy-btn" type="button">复制</button><code class="language-text">Codex 使用体系
+│
+├─ 1. Obsidian Vault：长期知识库
+│   ├─ 项目背景
+│   ├─ 技术资料
+│   ├─ 报错记录
+│   ├─ 决策记录
+│   ├─ 任务交接
+│   └─ 可发布博客内容
+│
+├─ 2. Codex 项目目录
+│   ├─ AGENTS.md：项目工作规则
+│   ├─ docs/knowledge/：项目内精选资料
+│   ├─ docs/handoff/：对话迁移和交接记录
+│   ├─ .agents/skills/：项目级 Skills
+│   └─ .codex/config.toml：项目配置/MCP 配置
+│
+├─ 3. 检索层
+│   ├─ 简单阶段：rg / grep / Python 搜索 Markdown
+│   ├─ 中级阶段：本地索引脚本
+│   └─ 高级阶段：RAG / MCP
+│
+└─ 4. Codex 工作流
+    ├─ 任务开始：先查 Obsidian 相关笔记
+    ├─ 执行过程：根据代码和资料分析
+    ├─ 任务结束：反向更新任务笔记、决策记录、踩坑记录
+    └─ 周期复盘：把临时记录整理成正式知识库</code></pre>
+          <div class="callout">
+            <strong>核心原则：</strong>不要依赖某一次对话保存长期上下文。真正可靠的做法是把对话中的结论、命令、错误、决策沉淀到 Obsidian 和项目文档中。
+          </div>
+        </section>
+
+        <section id="sec-3">
+          <h2>三、第一步：建立 Obsidian Vault</h2>
+          <p>建议创建一个独立的知识库目录，例如 Windows 下：</p>
+          <pre><button class="copy-btn" type="button">复制</button><code class="language-text">D:\AI_Knowledge\Codex_KB</code></pre>
+          <p>然后在 Obsidian 中打开这个文件夹作为 Vault。目录建议如下：</p>
+          <pre><button class="copy-btn" type="button">复制</button><code class="language-text">Codex_KB/
+├─ 00_Inbox/
+│  └─ 临时资料、网页摘录、未整理想法
+│
+├─ 10_Projects/
+│  ├─ YOLO人员检测/
+│  │  ├─ project-brief.md
+│  │  ├─ decisions.md
+│  │  ├─ run-log.md
+│  │  ├─ errors.md
+│  │  ├─ prompts.md
+│  │  └─ sources.md
+│  │
+│  ├─ Codex使用体系/
+│  │  ├─ codex-overview.md
+│  │  ├─ agents-md.md
+│  │  ├─ skills.md
+│  │  ├─ obsidian-kb.md
+│  │  └─ mcp-rag.md
+│  │
+│  └─ 毕设AI助教系统/
+│
+├─ 20_Topics/
+│  ├─ YOLO训练.md
+│  ├─ ONNX_TensorRT部署.md
+│  ├─ RAG知识库.md
+│  ├─ Prompt工程.md
+│  └─ 智能体工作流.md
+│
+├─ 30_Templates/
+│  ├─ task-note-template.md
+│  ├─ decision-template.md
+│  ├─ error-debug-template.md
+│  ├─ source-note-template.md
+│  └─ blog-template.md
+│
+├─ 40_Skills_Design/
+│  ├─ yolo-training-debug-skill.md
+│  ├─ paper-translation-skill.md
+│  └─ codex-knowledge-curator-skill.md
+│
+├─ 50_Public_Blog/
+│  └─ 准备发布到互联网的文章
+│
+└─ 90_Attachments/</code></pre>
+          <p>这个结构的好处是：临时资料、项目知识、跨项目主题、模板、Skill 草稿和公开博客彼此分开，后续 Codex 检索时也更容易控制范围。</p>
+        </section>
+
+        <section id="sec-4">
+          <h2>四、第二步：统一笔记模板，让 Codex 更容易理解资料类型</h2>
+          <p>给关键笔记加 YAML front matter，可以让人和 Codex 都快速判断这篇笔记的类型、项目、主题、状态、更新时间和可信度。</p>
+          <h3>1. 技术资料笔记模板</h3>
+          <pre><button class="copy-btn" type="button">复制</button><code class="language-markdown">---
+type: source-note
+project: codex-usage
+topic: obsidian-knowledge-base
+status: active
+updated: 2026-05-20
+tags:
+  - codex
+  - obsidian
+  - knowledge-base
+  - rag
+source_type: official-doc
+reliability: high
+---
+
+# Obsidian 作为 Codex 知识库的方法
+
+## 核心结论
+
+……
+
+## 适用场景
+
+……
+
+## 关键证据
+
+……
+
+## 操作步骤
+
+……
+
+## 风险和限制
+
+……
+
+## 关联笔记
+
+- [[AGENTS.md 使用规则]]
+- [[Codex Skills 设计]]
+- [[MCP 与 RAG]]</code></pre>
+          <h3>2. 决策记录模板</h3>
+          <pre><button class="copy-btn" type="button">复制</button><code class="language-markdown">---
+type: decision
+project: yolo-person-dwell
+status: accepted
+updated: 2026-05-20
+tags:
+  - yolo
+  - training
+  - codex
+---
+
+# 决策：小数据集微调时先降低学习率并减少强增强
+
+## 背景
+
+……
+
+## 备选方案
+
+1. ……
+2. ……
+3. ……
+
+## 最终决策
+
+……
+
+## 原因
+
+……
+
+## 验证方法
+
+……
+
+## 后续风险
+
+……</code></pre>
+          <h3>3. 报错记录模板</h3>
+          <pre><button class="copy-btn" type="button">复制</button><code class="language-markdown">---
+type: error-note
+project: yolo-person-dwell
+status: resolved
+updated: 2026-05-20
+tags:
+  - cuda
+  - pytorch
+  - ultralytics
+---
+
+# CUDA out of memory 排查记录
+
+## 报错原文
+
+```text
+……
+```
+
+## 环境
+
+- 系统：
+- Python：
+- PyTorch：
+- CUDA：
+- 显卡：
+
+## 根因判断
+
+……
+
+## 已尝试方案
+
+……
+
+## 有效解决方案
+
+……
+
+## 下次遇到时先检查
+
+……</code></pre>
+        </section>
+
+        <section id="sec-5">
+          <h2>五、第三步：把 Obsidian 接到 Codex 项目里</h2>
+          <p>根据项目复杂度，可以选择三种连接方式。</p>
+          <div class="grid">
+            <div class="card">
+              <h3>方案 A：复制精选资料</h3>
+              <p>把 Obsidian 中最相关的几篇复制到项目的 <code>docs/knowledge/</code>。适合刚开始，最稳定。</p>
+            </div>
+            <div class="card">
+              <h3>方案 B：目录联接</h3>
+              <p>用 Windows Junction 把 Obsidian 的项目笔记挂载到 Codex 项目的 <code>docs/obsidian-kb/</code>。</p>
+            </div>
+            <div class="card">
+              <h3>方案 C：搜索脚本</h3>
+              <p>项目里不复制笔记，只放搜索脚本，让 Codex 按规则检索 Vault。</p>
+            </div>
+            <div class="card">
+              <h3>方案 D：RAG/MCP</h3>
+              <p>当笔记数量很大时，把 Obsidian 转为语义检索服务，再通过 MCP 暴露给 Codex。</p>
+            </div>
+          </div>
+          <h3>方案 B 的 Windows 示例</h3>
+          <pre><button class="copy-btn" type="button">复制</button><code class="language-powershell">cd D:\Projects\codex-guide
+New-Item -ItemType Junction -Path docs\obsidian-kb -Target &quot;D:\AI_Knowledge\Codex_KB_Projects\Codex使用体系&quot;</code></pre>
+          <div class="callout warn">
+            <strong>注意：</strong>如果使用 Git 管理 Obsidian Vault，不建议提交 <code>.obsidian/workspace.json</code> 这类频繁变化的工作区文件。可以把它加入 <code>.gitignore</code>。
+          </div>
+        </section>
+
+        <section id="sec-6">
+          <h2>六、第四步：在 Codex 项目里写 AGENTS.md</h2>
+          <p>AGENTS.md 是 Codex 进入项目后要先读的“项目工作说明书”。它不应该放大量资料，而应该放规则、路径、约束、测试命令和完成标准。</p>
+          <pre><button class="copy-btn" type="button">复制</button><code class="language-markdown"># Codex 项目工作规则
+
+## 项目背景
+
+本项目使用 Obsidian 作为长期知识库，用 Codex 进行项目分析、代码修改、文档整理和知识沉淀。
+
+## 重要目录
+
+- docs/knowledge/：项目内精选知识资料
+- docs/obsidian-kb/：从 Obsidian Vault 挂载或复制过来的项目知识
+- docs/handoff/：历史对话迁移、任务交接、决策记录
+- scripts/：用于检索知识库、整理笔记、生成文档的脚本
+- .agents/skills/：项目级 Codex Skills
+
+## 使用知识库的规则
+
+当任务涉及以下内容时，必须先查知识库：
+
+- 项目历史决策
+- 技术选型
+- 报错排查
+- 训练参数
+- 部署流程
+- 论文/PPT/文档写作规则
+- 用户已经总结过的工作方法
+
+优先级：
+
+1. 当前项目 AGENTS.md
+2. docs/handoff/
+3. docs/knowledge/
+4. docs/obsidian-kb/
+5. 外部官方文档
+6. 搜索结果或模型推理
+
+## 回答时必须区分信息来源
+
+回答中需要明确区分：
+
+- 项目知识库已有结论
+- 当前代码或文件体现的信息
+- 外部资料/官方文档信息
+- Codex 自己的推理判断
+
+## 修改代码前的要求
+
+- 先阅读相关文件，不要直接重写
+- 不要删除历史实验结果、模型权重、数据集、日志
+- 修改前说明涉及哪些文件
+- 修改后给出可复制的验证命令
+- 如果不确定，先给计划，不要直接大改
+
+## 任务结束后的知识沉淀
+
+每次完成重要任务后，需要询问是否更新：
+
+- docs/handoff/task-log.md
+- docs/handoff/decisions.md
+- docs/handoff/known-issues.md
+- Obsidian 对应项目笔记
+
+## 完成标准
+
+一个任务完成时，至少说明：
+
+1. 做了什么
+2. 修改了哪些文件
+3. 如何验证
+4. 还有什么风险
+5. 是否需要更新知识库</code></pre>
+        </section>
+
+        <section id="sec-7">
+          <h2>七、第五步：创建一个 Obsidian 知识库检索 Skill</h2>
+          <p>AGENTS.md 管项目长期规则，Skill 管某类任务的固定流程。建议创建一个 <code>obsidian-context-loader</code>，让 Codex 在遇到历史资料、项目决策、报错记录、教程资料时先查知识库。</p>
+          <pre><button class="copy-btn" type="button">复制</button><code class="language-text">my-codex-project/
+└─ .agents/
+   └─ skills/
+      └─ obsidian-context-loader/
+         └─ SKILL.md</code></pre>
+          <pre><button class="copy-btn" type="button">复制</button><code class="language-markdown">---
+name: obsidian-context-loader
+description: 当用户的问题涉及项目历史资料、Obsidian 笔记、知识库、历史决策、报错记录、教程资料、论文/PPT写作规则时使用。不要在简单代码语法问题中使用。
+---
+
+# Obsidian 知识库检索流程
+
+## 目标
+
+帮助 Codex 在回答或修改项目之前，先从 Obsidian 知识库中找出相关历史资料，避免重复分析和遗漏已有结论。
+
+## 第一步：判断是否需要检索
+
+以下情况必须检索：
+
+- 用户提到“之前”“上次”“已有资料”“知识库”“Obsidian”
+- 任务涉及项目决策、部署、训练参数、报错记录
+- 用户要求综合多篇文章、资料、教程
+- 任务需要延续另一个 Codex 项目或历史对话
+
+以下情况可以不检索：
+
+- 简单语法解释
+- 单个短命令修改
+- 用户明确要求不要查历史资料
+
+## 第二步：检索位置
+
+优先搜索：
+
+- docs/handoff/
+- docs/knowledge/
+- docs/obsidian-kb/
+- D:\AI_Knowledge\Codex_KB_Projects- D:\AI_Knowledge\Codex_KB_Topics
+排除：
+
+- .obsidian/
+- 90_Attachments/
+- 00_Inbox/ 未整理资料
+
+## 第三步：检索方法
+
+先使用关键词搜索，必要时扩大同义词。
+
+例如：
+
+- “YOLO 训练” 同时搜索：yolo、训练、mAP、loss、freeze、mosaic
+- “Codex 知识库” 同时搜索：codex、AGENTS、Skills、MCP、RAG、Obsidian
+- “部署” 同时搜索：ONNX、TensorRT、trtexec、C++、推理
+
+## 第四步：读取和筛选
+
+只读取最相关的 3-8 篇笔记。
+
+筛选标准：
+
+1. 更新时间较新
+2. 与当前项目直接相关
+3. 来源可靠
+4. 有明确结论或命令
+5. 不是临时草稿
+
+## 第五步：回答要求
+
+回答时必须包含：
+
+- 查到了哪些相关笔记
+- 这些笔记支持什么结论
+- 哪些内容仍需外部查询或重新验证
+- 当前建议
+- 是否需要把新结论写回知识库</code></pre>
+        </section>
+
+        <section id="sec-8">
+          <h2>八、第六步：先用 ripgrep 搜索，不要一开始就上复杂 RAG</h2>
+          <p>刚开始不要急着做向量数据库。先把目录、模板、标签和文件命名做好，再用关键词搜索建立工作习惯。</p>
+          <h3>安装 ripgrep</h3>
+          <pre><button class="copy-btn" type="button">复制</button><code class="language-powershell">winget install BurntSushi.ripgrep.MSVC</code></pre>
+          <h3>搜索整个 Obsidian Vault</h3>
+          <pre><button class="copy-btn" type="button">复制</button><code class="language-powershell">rg -n --glob &quot;*.md&quot; --glob &quot;!**/.obsidian/**&quot; &quot;Codex AGENTS Skills&quot; &quot;D:\AI_Knowledge\Codex_KB&quot;</code></pre>
+          <h3>搜索某个项目</h3>
+          <pre><button class="copy-btn" type="button">复制</button><code class="language-powershell">rg -n --glob &quot;*.md&quot; &quot;YOLO freeze 学习率 mosaic&quot; &quot;D:\AI_Knowledge\Codex_KB_Projects\YOLO人员检测&quot;</code></pre>
+          <div class="callout">
+            <strong>升级到 RAG/MCP 的条件：</strong>Markdown 超过几百篇、关键词搜索经常找不到同义表达、你希望用自然语言自动召回相关笔记，或者多个项目都需要共享同一个知识库。
+          </div>
+          <p>RAG 的基本流程是：Markdown → 切分 chunk → embedding 向量化 → 向量库 → 根据问题检索相关片段 → Codex 读取片段再结合项目文件分析。MCP 则可以把这个检索能力包装成 Codex 能调用的工具。</p>
+        </section>
+
+        <section id="sec-9">
+          <h2>九、Codex + Obsidian 的日常工作流</h2>
+          <div class="steps">
+            <div class="step"><div><strong>任务开始：</strong>先让 Codex 阅读 AGENTS.md，并用 obsidian-context-loader 搜索相关笔记。</div></div>
+            <div class="step"><div><strong>执行之前：</strong>要求 Codex 先输出已有资料、已有结论、风险和执行计划，不要马上修改代码。</div></div>
+            <div class="step"><div><strong>执行过程中：</strong>Codex 修改代码、运行测试、记录报错，并与知识库中的历史方案对照。</div></div>
+            <div class="step"><div><strong>任务结束：</strong>整理 task note、decision note、error note，把有长期价值的结论写回 Obsidian。</div></div>
+            <div class="step"><div><strong>每周整理：</strong>清理 00_Inbox，合并重复笔记，把成熟流程转成 Skill。</div></div>
+          </div>
+          <h3>任务开始提示词</h3>
+          <pre><button class="copy-btn" type="button">复制</button><code class="language-text">请先阅读 AGENTS.md。
+然后使用 obsidian-context-loader 检索 Obsidian 知识库中和“YOLOv11 人员检测、小数据集微调、freeze、学习率、mosaic”相关的笔记。
+先不要修改代码。
+请先输出：
+1. 找到的相关资料
+2. 已有结论
+3. 当前任务风险
+4. 建议执行计划</code></pre>
+          <h3>任务结束提示词</h3>
+          <pre><button class="copy-btn" type="button">复制</button><code class="language-text">请把这次任务整理成 Obsidian 笔记。
+需要生成三份内容：
+
+1. task note：记录本次做了什么、修改了什么、验证了什么
+2. decision note：如果这次形成了长期技术决策，请写成决策记录
+3. error note：如果遇到报错，请写成可复用排查记录
+
+请使用项目知识库模板，输出为 Markdown。</code></pre>
+        </section>
+
+        <section id="sec-10">
+          <h2>十、是否把 Obsidian 知识库发布到互联网博客？</h2>
+          <p>可以发布，但不建议全量发布。Obsidian 中可能包含项目路径、日志、账号线索、未验证结论、私人记录和商业资料。更安全的方式是分成私有知识库和公开博客库。</p>
+          <pre><button class="copy-btn" type="button">复制</button><code class="language-text">Codex_KB/
+├─ 10_Projects/        私有，不发布
+├─ 20_Topics/          部分可发布
+├─ 50_Public_Blog/     专门发布
+└─ 90_Attachments/     发布前筛选</code></pre>
+          <p>如果只是发布几篇文章，GitHub Pages + 单文件 HTML 就足够。如果未来要把 Obsidian 做成长期公开知识花园，可以考虑 Quartz 或 Obsidian Publish。</p>
+        </section>
+
+        <section id="sec-11">
+          <h2>十一、最适合的落地路线</h2>
+          <div class="grid">
+            <div class="card"><h3>阶段 1：建 Vault</h3><p>先建立 <code>D:\AI_Knowledge\Codex_KB</code> 和基础目录，不追求自动化。</p></div>
+            <div class="card"><h3>阶段 2：接入 Codex</h3><p>写 AGENTS.md，把相关笔记复制或挂载到项目里，安装 rg 搜索。</p></div>
+            <div class="card"><h3>阶段 3：沉淀 Skills</h3><p>先做 obsidian-context-loader、knowledge-curator、project-handoff-writer。</p></div>
+            <div class="card"><h3>阶段 4：升级 RAG/MCP</h3><p>当笔记数量和项目数量变多后，再做语义检索和 MCP 服务。</p></div>
+          </div>
+          <div class="callout ok">
+            <strong>最终建议：</strong>Obsidian 做长期知识库，Codex 项目里放 AGENTS.md，高频流程做 Skills，简单检索先用 rg，资料变多后再升级 RAG/MCP。这样比单纯 NotebookLM 式“上传资料问答”更适合 Codex，因为 Codex 还要读项目、改代码、跑命令、生成文档和更新知识库。
+          </div>
+        </section>
+
+        <section id="sec-12">
+          <h2>十二、发给 Codex 的执行提示词：把本文作为第二篇 GitHub Pages 博客发布</h2>
+          <p>下面这段可以直接复制给 Codex。它会把本文 HTML 作为第二篇文章发布到你已经建好的 GitHub Pages 仓库中，并尽量自动识别仓库结构。</p>
+          <pre><button class="copy-btn" type="button">复制</button><code class="language-text">你现在需要把我提供的 HTML 文件作为 GitHub Pages 的第二篇博客文章发布。
+
+目标：
+1. 不破坏现有第一篇文章和 GitHub Pages 配置。
+2. 新文章文件名使用：obsidian-codex-knowledgebase.html
+3. 如果仓库已有 posts/ 或 articles/ 目录，优先放入 posts/；否则创建 posts/。
+4. 如果仓库根目录有 index.html，请在首页增加第二篇文章入口链接。
+5. 如果仓库使用 docs/ 作为 Pages 发布目录，请把文章放到 docs/posts/，并修改 docs/index.html。
+6. 如果仓库使用 Jekyll、Vite、Astro、MkDocs、Quartz 等结构，请先判断结构，再给出最小改动方案，不要盲目覆盖。
+7. 所有修改前先执行 git status，并说明将要修改的文件。
+8. 修改后本地检查链接是否正确，再提交并 push。
+
+具体执行步骤：
+
+第一步：检查当前仓库状态
+- 运行：git status
+- 查看仓库结构：ls 或 dir
+- 判断 GitHub Pages 发布目录是根目录、docs/ 还是其他目录。
+
+第二步：保存 HTML
+- 将我提供的 HTML 内容保存为：posts/obsidian-codex-knowledgebase.html
+- 如果实际发布目录是 docs/，则保存为：docs/posts/obsidian-codex-knowledgebase.html
+
+第三步：更新首页入口
+- 如果存在 index.html，在文章列表或合适位置添加链接：
+  &lt;a href=&quot;posts/obsidian-codex-knowledgebase.html&quot;&gt;Obsidian + Codex：打造可持续知识库与项目智能体工作流&lt;/a&gt;
+- 如果第一篇文章已经有卡片样式，请沿用原样式添加第二张卡片。
+- 不要删除第一篇文章链接。
+
+第四步：本地检查
+- 确认新 HTML 文件可以打开。
+- 确认 index.html 中的链接路径正确。
+- 如果有构建命令，运行对应构建；如果只是静态 HTML，不需要构建。
+
+第五步：提交并推送
+- git add .
+- git commit -m &quot;Add Obsidian Codex knowledge base blog post&quot;
+- git push
+
+第六步：输出结果
+请告诉我：
+1. 新增了哪些文件
+2. 修改了哪些文件
+3. GitHub Pages 访问路径应该是什么
+4. 如果 Pages 需要等待部署，请提醒我稍等 1-3 分钟刷新。</code></pre>
+          <h3>备用手动命令</h3>
+          <pre><button class="copy-btn" type="button">复制</button><code class="language-bash"># 进入你的 GitHub Pages 仓库
+cd 你的仓库路径
+
+# 创建文章目录
+mkdir -p posts
+
+# 把 obsidian-codex-knowledgebase.html 复制到 posts/ 下
+# Windows 示例：
+copy D:\下载\obsidian-codex-knowledgebase.html posts\obsidian-codex-knowledgebase.html
+
+# 检查状态
+git status
+
+# 提交并推送
+git add .
+git commit -m &quot;Add Obsidian Codex knowledge base blog post&quot;
+git push</code></pre>
+        </section>
+
+        <section id="references">
+          <h2>参考资料</h2>
+          <ol class="footnotes">
+            <li><a href="https://developers.openai.com/codex/guides/agents-md" target="_blank" rel="noopener noreferrer">OpenAI Codex：AGENTS.md 官方文档</a></li><li><a href="https://developers.openai.com/codex/skills" target="_blank" rel="noopener noreferrer">OpenAI Codex：Agent Skills 官方文档</a></li><li><a href="https://developers.openai.com/codex/mcp" target="_blank" rel="noopener noreferrer">OpenAI Codex：MCP 官方文档</a></li><li><a href="https://obsidian.md/help/data-storage" target="_blank" rel="noopener noreferrer">Obsidian：数据存储方式</a></li><li><a href="https://obsidian.md/help/plugins/graph" target="_blank" rel="noopener noreferrer">Obsidian：Graph view 官方说明</a></li><li><a href="https://agents.md/" target="_blank" rel="noopener noreferrer">AGENTS.md 开放格式介绍</a></li><li><a href="https://github.com/openai/skills" target="_blank" rel="noopener noreferrer">OpenAI Skills Catalog</a></li><li><a href="https://github.com/jackyzha0/quartz" target="_blank" rel="noopener noreferrer">Quartz：把 Markdown 笔记发布为 Digital Garden</a></li>
+          </ol>
+        </section>
+      </article>
+    </div>
+
+    <p class="footer-note">本文为 Codex 使用方法系列第二篇：将 Obsidian、AGENTS.md、Skills 与 RAG/MCP 组合成可持续项目知识库。</p>
+  </div>
+
+  <script>
+    document.querySelectorAll('.copy-btn').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        const code = btn.parentElement.querySelector('code').innerText;
+        try {
+          await navigator.clipboard.writeText(code);
+          const old = btn.innerText;
+          btn.innerText = '已复制';
+          setTimeout(() => btn.innerText = old, 1200);
+        } catch (err) {
+          btn.innerText = '复制失败';
+          setTimeout(() => btn.innerText = '复制', 1200);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
