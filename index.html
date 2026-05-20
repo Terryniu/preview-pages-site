@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codex 项目化使用指南：知识库、AGENTS.md、Skills、Plugins / MCP</title>
+<style>
+:root{--bg:#f6f8fb;--card:#fff;--text:#18202a;--muted:#5d6978;--primary:#1f4e79;--line:#d9e2ec;--code:#f3f6fa;}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;line-height:1.72} .wrap{max-width:1080px;margin:0 auto;padding:32px 18px 60px}.hero{background:linear-gradient(135deg,#1f4e79,#4f81bd);color:white;border-radius:22px;padding:42px 36px;box-shadow:0 12px 32px rgba(31,78,121,.18)}.hero h1{margin:0 0 10px;font-size:34px;line-height:1.25}.hero p{margin:0;color:#e8f1fb;font-size:17px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 28px;margin:22px 0;box-shadow:0 6px 18px rgba(15,23,42,.04)}h2{color:var(--primary);font-size:26px;margin:8px 0 16px;border-bottom:1px solid var(--line);padding-bottom:8px}h3{color:#2f5597;font-size:20px;margin:22px 0 8px}.toc a{display:block;color:var(--primary);text-decoration:none;padding:5px 0}.toc a:hover{text-decoration:underline}.note{background:#eaf2f8;border-left:5px solid var(--primary);padding:14px 16px;border-radius:10px;margin:16px 0}pre{background:var(--code);border:1px solid #dfe7ef;border-radius:14px;padding:16px;overflow:auto;font-size:13.5px;line-height:1.55}code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}table{width:100%;border-collapse:collapse;margin:16px 0;background:white}th,td{border:1px solid var(--line);padding:10px 12px;vertical-align:top}th{background:var(--primary);color:white;text-align:left}.muted{color:var(--muted)}a{color:#0b63ce}.footer{font-size:14px;color:var(--muted);text-align:center;margin-top:36px}@media(max-width:720px){.hero{padding:28px 20px}.hero h1{font-size:26px}.card{padding:18px 16px}table{font-size:14px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<section class="hero">
+<h1>Codex 项目化使用指南</h1>
+<p>知识库 · AGENTS.md · Skills · Plugins / MCP：把 Codex 从“代码聊天框”配置成项目智能体工作台。</p>
+</section>
+<section class="card note"><strong>核心结论：</strong>Codex 不应只当“会写代码的聊天框”，而应当配置成项目智能体工作台。推荐结构是：项目资料库负责知识来源，AGENTS.md 负责长期工作规则，Skills 固化重复任务流程，Plugins / MCP 负责连接外部工具和资料源。</section>
+<section class="card toc">
+<h2>目录</h2>
+<a href="#s1">1. Codex 与 NotebookLM 的差异</a>
+<a href="#s2">2. 建立项目知识库的三种方式</a>
+<a href="#s3">3. 用 AGENTS.md 管理 Codex 的工作方式</a>
+<a href="#s4">4. Skills 的作用、结构与创建方法</a>
+<a href="#s5">5. Plugins / MCP 与 Skills 的区别</a>
+<a href="#s6">6. 技术与 AI 原理：为什么这些配置有效</a>
+<a href="#s7">7. 适合你的落地路线</a>
+<a href="#s8">8. HTML 博客发布方案</a>
+<a href="#s9">9. 推荐阅读与官方资料</a>
+</section>
+<section class="card" id="s1">
+<h2>1. Codex 与 NotebookLM 的差异</h2>
+<p>NotebookLM 的核心是“先上传资料，再围绕资料问答”；Codex 的核心是“围绕项目目录、代码、文档、工具和任务执行”。所以在 Codex 中，更推荐把知识库做成“项目资料库 + 检索规则 + MCP/RAG 工具”的形式，而不是只把资料堆进聊天窗口。</p>
+<table><tr><th>维度</th><th>NotebookLM</th><th>Codex 推荐方式</th></tr><tr><td>主要对象</td><td>文章、PDF、网页资料</td><td>项目目录、代码、文档、脚本、测试、外部工具</td></tr><tr><td>核心工作</td><td>基于资料进行问答和摘要</td><td>理解项目并执行修改、测试、分析、生成文档</td></tr><tr><td>知识来源</td><td>上传的资料集合</td><td>docs/knowledge、AGENTS.md、Skills、MCP、外部搜索</td></tr><tr><td>适合场景</td><td>文献阅读、资料问答、知识整理</td><td>代码工程、项目开发、自动化流程、复杂任务执行</td></tr></table>
+<p>因此，Codex 的“知识库”应该和项目工程结构绑定：把可复用资料放入项目目录，让 AGENTS.md 告诉 Codex 何时查资料、优先查什么、如何区分资料证据和模型推理。</p>
+</section>
+<section class="card" id="s2">
+<h2>2. 建立项目知识库的三种方式</h2>
+<h3>2.1 轻量级：本地文档库</h3>
+<p>这是最适合起步的方法。把资料整理为 Markdown / TXT / HTML，并放到项目的 docs/knowledge/ 目录下。AGENTS.md 负责说明资料索引和使用规则。</p>
+<pre><code>my-project/
+├─ AGENTS.md
+├─ docs/
+│  ├─ knowledge/
+│  │  ├─ paper_notes/
+│  │  ├─ official_docs/
+│  │  ├─ tutorials/
+│  │  └─ project_decisions.md
+│  ├─ glossary.md
+│  └─ sources_index.md
+├─ .codex/
+│  ├─ config.toml
+│  └─ skills/
+│     └─ literature-review/
+│        └─ SKILL.md
+├─ scripts/
+│  └─ search_knowledge.py
+└─ src/</code></pre>
+<ul><li>docs/knowledge/：放文章、教程、论文笔记、接口文档、项目决策。</li><li>docs/sources_index.md：记录资料来源、更新时间、可信度、适用范围。</li><li>AGENTS.md：规定 Codex 遇到相关问题时先查哪些资料。</li><li>Skills：把“如何查资料、如何引用、如何综合分析”固化成可复用流程。</li></ul>
+<div class="note"><strong>建议：</strong>不要直接把大量 PDF 原文堆给 Codex。更稳妥的做法是把核心资料转成 Markdown，并按主题拆分，便于模型定位和引用。</div>
+<h3>2.2 中量级：本地 RAG 检索脚本</h3>
+<p>当资料达到几十篇以上时，单靠 AGENTS.md 指引可能不够。可以建立本地 RAG：资料切分为 chunk，向量化存入 FAISS/Chroma，再根据问题检索最相关片段，让 Codex 基于片段分析。</p>
+<pre><code>资料 → 切分 chunk → embedding 向量化 → 向量库 FAISS/Chroma
+    → 根据问题检索相关片段 → Codex 读取片段并分析</code></pre>
+<pre><code>python scripts/search_knowledge.py "YOLOv11 小目标人员检测 mosaic 应该怎么调"</code></pre>
+<h3>2.3 高级：MCP 知识库或外部工具接入</h3>
+<p>MCP 适合把 Codex 连接到外部工具或共享资料源，例如 Google Drive、GitHub、Context7、本地 RAG 服务、浏览器上下文等。</p>
+<pre><code>codex mcp add context7 -- npx -y @upstash/context7-mcp</code></pre>
+</section>
+<section class="card" id="s3">
+<h2>3. 用 AGENTS.md 管理 Codex 的工作方式</h2>
+<p>AGENTS.md 可以理解成“给项目智能体看的 README”。它适合放项目目标、目录结构、关键命令、禁止事项、测试方法、知识库入口和完成标准。</p>
+<table><tr><th>层级</th><th>路径示例</th><th>作用</th></tr><tr><td>全局个人规则</td><td>~/.codex/AGENTS.md</td><td>所有项目都继承的个人偏好和工作习惯</td></tr><tr><td>项目规则</td><td>项目根目录/AGENTS.md</td><td>当前项目的目标、目录、命令、禁止事项</td></tr><tr><td>子模块规则</td><td>src/detection/AGENTS.md</td><td>某个子目录或模块的特殊规则，优先级更高</td></tr></table>
+<h3>3.1 全局 AGENTS.md 示例</h3>
+<pre><code># Terry 的 Codex 全局工作规则
+
+## 交流方式
+- 默认使用中文回答。
+- 遇到复杂任务，先给计划，再执行。
+- 不要一上来大改项目结构，先说明影响范围。
+- 修改代码前先阅读相关文件，确认现有逻辑。
+- 输出命令时，给出完整可复制命令。
+
+## 编程习惯
+- 尽量保留原有代码风格。
+- 修改前说明改哪些文件。
+- 修改后给出测试命令。
+- 如果不确定依赖版本，先检查环境文件。
+- 不要擅自删除数据、模型权重、训练结果、日志文件。
+
+## 任务完成标准
+- 代码能运行。
+- 给出验证方法。
+- 说明可能的风险。
+- 说明下一步怎么做。</code></pre>
+<h3>3.2 项目 AGENTS.md 示例</h3>
+<pre><code># 本项目 Codex 工作规则
+
+## 项目背景
+这是一个 YOLOv11 人员检测与状态识别项目，目标是在边缘端统计人员停留时间。
+
+## 重要目录
+- datasets/：数据集与标注
+- scripts/：数据处理脚本
+- runs/：训练结果，不要删除
+- models/：模型定义
+- docs/knowledge/：项目知识库
+
+## 修改规则
+- 修改训练脚本前，先检查 data.yaml、模型权重路径、batch、imgsz、冻结层和学习率。
+- 不要覆盖原始训练结果。
+- 新实验必须使用新的 name 参数。
+- 任何会改变标签顺序的操作必须先提醒用户确认。
+
+## 回答要求
+- 涉及训练参数时，必须说明为什么这么调。
+- 涉及报错时，必须先定位根因，再给命令。
+- 涉及部署时，必须区分 Python 推理、ONNX、TensorRT、C++ 部署。</code></pre>
+<div class="note"><strong>AGENTS.md 的边界：</strong>AGENTS.md 不适合放大量论文原文、长篇教程、完整接口文档。它更适合放规则、索引、命令、禁止事项和完成标准。</div>
+</section>
+<section class="card" id="s4">
+<h2>4. Skills 的作用、结构与创建方法</h2>
+<p>一句话区分：AGENTS.md 管“这个项目里 Codex 应长期遵守什么规则”；Skill 管“遇到某类任务时，Codex 应按什么流程做”。</p>
+<table><tr><th>对象</th><th>作用</th><th>典型内容</th></tr><tr><td>AGENTS.md</td><td>长期工作规则</td><td>项目目录、测试命令、禁止事项、知识库入口</td></tr><tr><td>Skill</td><td>可复用任务流程</td><td>任务触发条件、步骤、输出格式、脚本、参考资料</td></tr><tr><td>Script</td><td>确定性执行工具</td><td>检查日志、生成报告、搜索知识库、格式转换</td></tr></table>
+<p>一个 Skill 通常是一个目录，里面必须有 SKILL.md，也可以带 scripts、references、assets。Codex 先看 name 和 description 判断是否相关；匹配后再读取完整 SKILL.md。</p>
+<pre><code>~/.codex/skills/
+└─ yolo-training-review/
+   ├─ SKILL.md
+   ├─ scripts/
+   │  └─ check_yolo_run.py
+   ├─ references/
+   │  └─ yolo_param_notes.md
+   └─ assets/</code></pre>
+<h3>4.1 YOLO 训练分析 Skill 示例</h3>
+<pre><code>---
+name: yolo-training-review
+description: 当用户需要分析 YOLO 训练参数、训练日志、mAP、loss 曲线、过拟合、欠拟合、数据集问题或微调策略时使用。
+---
+
+# YOLO 训练分析流程
+
+## 第一步：收集信息
+先检查：
+- data.yaml
+- 训练脚本
+- 模型权重路径
+- epochs、batch、imgsz
+- lr0、lrf、optimizer
+- mosaic、mixup、copy_paste
+- freeze
+- results.csv
+- confusion_matrix、PR 曲线、样例预测图
+
+## 第二步：判断问题类型
+区分：
+- 数据量不足
+- 标签错误
+- 学习率过低
+- 冻结层不合理
+- 增强策略不匹配
+- 类别不平衡
+- 小目标分辨率不足
+- 过拟合或欠拟合
+
+## 第三步：输出建议
+必须给出：
+- 当前问题判断
+- 修改参数
+- 完整训练命令
+- 风险说明
+- 如何验证是否改善</code></pre>
+<h3>4.2 推荐先做的个人 Skills</h3>
+<table><tr><th>Skill 名称</th><th>用途</th></tr><tr><td>yolo-training-debug</td><td>分析 YOLOv8/v11 训练参数、数据集、loss、mAP、过拟合、冻结层。</td></tr><tr><td>onnx-tensorrt-export</td><td>处理 PyTorch → ONNX → TensorRT 导出、动态 batch、opset、trtexec。</td></tr><tr><td>paper-translation-polish</td><td>英文文献翻译，保持原文结构，只输出中文润色版。</td></tr><tr><td>thesis-ppt-design</td><td>本科答辩 PPT、系统架构图、流程图、讲稿控时。</td></tr><tr><td>code-evaluation-prompt</td><td>AI 助教代码评分官、报告评分官、JSON 输出规范。</td></tr><tr><td>stock-screening-review</td><td>A 股价值投资筛选表、公式说明、更新表、风险标记。</td></tr></table>
+<h3>4.3 通用 Skill 模板</h3>
+<pre><code>---
+name: xxx
+description: 当用户需要……时使用。触发场景包括……。不要在……场景使用。
+---
+
+# 目标
+这个 Skill 用于……
+
+# 适用场景
+使用：
+- ……
+
+不使用：
+- ……
+
+# 输入信息检查
+执行前先确认：
+1. ……
+2. ……
+3. ……
+
+# 工作流程
+## 第一步：理解任务
+……
+
+## 第二步：检查资料/代码/日志
+……
+
+## 第三步：分析原因
+……
+
+## 第四步：给出方案
+……
+
+# 输出格式
+必须输出：
+- 结论
+- 原因
+- 修改方案
+- 命令
+- 风险
+- 验证方法
+
+# 禁止事项
+- 不要……
+- 不要……</code></pre>
+</section>
+<section class="card" id="s5">
+<h2>5. Plugins / MCP 与 Skills 的区别</h2>
+<p>Skill 是工作流程；Plugin 是可安装的能力包；MCP 是外部工具或资料接口；App Connector 是连接 Gmail、Google Drive、GitHub 等具体服务的桥。</p>
+<table><tr><th>概念</th><th>本质</th><th>适合解决的问题</th></tr><tr><td>Skill</td><td>流程 / 方法论 / 操作手册</td><td>让 Codex 按固定步骤处理某类任务</td></tr><tr><td>Plugin</td><td>可安装能力包</td><td>把多个 Skills、MCP、App 映射和资源打包分发</td></tr><tr><td>MCP</td><td>外部工具 / 资料接口协议</td><td>连接第三方文档、数据库、本地服务、浏览器、Figma 等</td></tr><tr><td>App Connector</td><td>具体应用连接</td><td>连接 Google Drive、GitHub、Slack、Gmail 等</td></tr></table>
+<pre><code>my-plugin/
+├─ .codex-plugin/
+│  └─ plugin.json
+├─ skills/
+│  └─ my-skill/
+│     └─ SKILL.md
+├─ hooks/
+│  └─ hooks.json
+├─ .mcp.json
+├─ .app.json
+└─ assets/</code></pre>
+<div class="note"><strong>使用建议：</strong>现阶段不要一上来做 Plugin。先做 Skill，因为 Skill 更容易调试。等某个 Skill 稳定后，再考虑打包成 Plugin；如果需要连接外部资料或工具，再接 MCP。</div>
+</section>
+<section class="card" id="s6">
+<h2>6. 技术与 AI 原理：为什么这些配置有效</h2>
+<p>Skills 和 AGENTS.md 并不是给模型重新训练，也不是安装了一个新模型。它们本质上是“上下文工程”和“任务路由规则”：让模型在合适的时候加载合适的规则、流程、资料和工具。</p>
+<pre><code>任务输入
+↓
+Codex 读取全局/项目 AGENTS.md
+↓
+根据任务判断是否需要某个 Skill
+↓
+读取对应 SKILL.md、references、scripts
+↓
+必要时调用 MCP/脚本/外部搜索
+↓
+基于项目上下文、资料证据和模型推理输出结果</code></pre>
+<ul><li>减少重复提示词：把反复使用的工作方法固化，不必每次重新描述。</li><li>提高触发一致性：description 负责让模型判断何时使用某个 Skill。</li><li>节省上下文：Codex 不需要一次性读取所有 Skill，而是按任务逐步加载。</li><li>增强可验证性：脚本、测试命令、输出格式可以把不稳定的口头经验变成可检查流程。</li><li>降低跑偏概率：AGENTS.md 明确禁止事项、目录约束、测试标准和完成标准。</li></ul>
+</section>
+<section class="card" id="s7">
+<h2>7. 适合你的落地路线</h2>
+<ol><li>每个重要项目先建立 docs/knowledge/、docs/sources_index.md、AGENTS.md。</li><li>在 AGENTS.md 中写清项目背景、目录结构、知识库位置、代码修改规则、测试命令和禁止事项。</li><li>先做两个高频 Skills：yolo-training-debug 和 paper-translation-polish。</li><li>每次发现 Codex 反复犯同一个错误，就把规则补进 AGENTS.md 或对应 Skill。</li><li>当资料变多后，让 Codex 帮你写 scripts/build_knowledge_index.py 和 scripts/search_knowledge.py。</li><li>当知识库、Google Drive、GitHub、网页资料都需要接入时，再考虑 MCP。</li><li>当某套能力稳定后，再打包为 Plugin 供多个项目或团队复用。</li></ol>
+<pre><code>项目根目录/
+├─ AGENTS.md
+├─ docs/
+│  ├─ knowledge/
+│  └─ sources_index.md
+├─ .codex/
+│  └─ skills/
+└─ scripts/
+   └─ search_knowledge.py</code></pre>
+</section>
+<section class="card" id="s8">
+<h2>8. HTML 博客发布方案</h2>
+<p>本次同时生成了 HTML 文件，可以作为静态网页直接上传。后续如果希望互联网可访问，推荐优先选择 GitHub Pages；如果你想以后扩展成更漂亮的个人博客或前端站点，可选 Vercel 或 Netlify。</p>
+<table><tr><th>方案</th><th>适合人群</th><th>优点</th><th>注意事项</th></tr><tr><td>GitHub Pages</td><td>只想快速公开 HTML / Markdown 文档的人</td><td>免费、稳定、适合静态页面；支持自定义域名</td><td>需要 GitHub 账号和仓库；国内访问速度视网络而定</td></tr><tr><td>Vercel</td><td>希望后续扩展成博客、Next.js、AI 工具站的人</td><td>部署快、适合现代前端项目、Git 集成方便</td><td>功能较多，纯小白初次可能略复杂</td></tr><tr><td>Netlify</td><td>想拖拽或 Git 自动部署静态站的人</td><td>静态站部署简单，适合 HTML/CSS/JS</td><td>国内访问速度同样受网络影响</td></tr><tr><td>自有服务器 + Nginx</td><td>已有服务器和域名的人</td><td>完全可控，可放到自己的域名下</td><td>需要维护服务器、HTTPS、备份和安全配置</td></tr></table>
+<div class="note"><strong>最推荐路线：</strong>先用 GitHub Pages 发布这个 HTML。后续如果你需要更像博客系统的能力，再迁移到 Vercel + Astro/Next.js，或 Netlify + 静态站点生成器。</div>
+</section>
+<section class="card" id="s9">
+<h2>9. 推荐阅读与官方资料</h2>
+<ul><li><a href="https://developers.openai.com/codex/learn/best-practices">Codex Best Practices</a></li><li><a href="https://developers.openai.com/codex/guides/agents-md">Custom instructions with AGENTS.md</a></li><li><a href="https://developers.openai.com/codex/skills">Agent Skills – Codex</a></li><li><a href="https://developers.openai.com/codex/use-cases/reusable-codex-skills">Save workflows as skills</a></li><li><a href="https://developers.openai.com/codex/plugins">Plugins – Codex</a></li><li><a href="https://developers.openai.com/codex/mcp">Model Context Protocol – Codex</a></li><li><a href="https://developers.openai.com/codex/ide">Codex IDE extension</a></li><li><a href="https://developers.openai.com/codex/cli">Codex CLI</a></li><li><a href="https://pages.github.com/">GitHub Pages</a></li><li><a href="https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site">GitHub Pages: Creating a site</a></li></ul>
+</section>
+<div class="footer">Codex 项目化使用指南 · 知识库 · AGENTS.md · Skills · Plugins / MCP</div>
+</div>
+</body>
+</html>
